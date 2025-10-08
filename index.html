@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#000000">
+    <meta name="description" content="Nagyító alkalmazás mobilra">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAADsQAAA7EB9YPtSQAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAAKHSURBVGiB7Zq/axRBFMc/s7e3t7eXO5JATC4QFBSM2FgIFoKVhY2FjZWVf4GNlVjY2NhYWVnYWFkIgoWFYCEIQUQQxB8gCEGJ5u7u9vZ2dmfG4u5ILslmZzYXA/nCwjLDzHzfb9+8efMW/vOFAAPAIrAELANLvh0E+kAX6ACtwHaA9o4VPQO8B4aAcWwP4OkcBHYDe4A9wKLv9b3fZ4FZb9sM7AK2edumgEeBt97+F9giLHMZ+Aq0gA4wAAbAyLd7wIj/6TDwnRpTqAmcBr4BLhXbFyoWM2lOAO9ySCSxN1To/0pNAKeAb0CSk0SCz8BJqiQxD7wCXEokkdgr4Dk1kGgAZ4AOxZNI7CfwjApJNIDz/s0VSyKxJnCBCkg0/BsukkRirwkk0QAu+jcWhURiTXwSVUtkzr+hMkgkNgRe4JOolMQsJUkkNgCeUyGJBnCFckmMgKP4dUvZJBrANconMQaOUSKJBnCd8kmMgSMYSMwANymfxJhgEjNZF50BblE+ibFvJvcoG4EHlE9iDNynbBL3KZ/EBLhL2STuUT6JCXAb+/h7H7hD2STuYK9bTwJ3sJe4l2VZ6Ro4ic3yeoE9SMXAU2wkpoE9iMbAU2wkusCjnOMfYSMxBe5hI9EFHmMj0QWeYCPRBZ5iI9HF1phzya2wNYo11gBs9t6PAcfJ1igDj/FJ/MlwzSb2Tky8BK4F9H+FrTrluTzXdC+wfx74GtB/gq2xXmS45iKwJsN184E9O8BGRv8xsJbhmouBPQ1gfwr/pv/d9YC+TeBLiv5NYHOKvpeBPQ1gX4b+ffgk0jqo8bdd3f83agDPKJ9EA3hO+SQawAvKJ9EAnmEj8Qf4A7zERuIP0XVL3vgLK6rJZTdHFRkAAAAASUVORK5CYII=">
+    <title>Nagyító</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+            background: #000;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+        }
+
+        #video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: none;
+        }
+
+        #controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px 20px;
+            border-radius: 30px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            z-index: 10;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        #topControls {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        #sliderContainer {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #zoomSlider {
+            flex: 1;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 6px;
+            border-radius: 5px;
+            background: #555;
+            outline: none;
+        }
+
+        #zoomSlider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #fff;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+
+        #zoomSlider::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #fff;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+
+        .btn {
+            background: #fff;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s;
+        }
+
+        .btn:active {
+            transform: scale(0.9);
+        }
+
+        #flashBtn {
+            background: #ffd700;
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10;
+        }
+
+        #freezeBtn {
+            background: #4CAF50;
+        }
+
+        #startBtn {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            font-size: 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: none;
+        }
+
+        #canvas {
+            display: none;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .status {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <video id="video" autoplay playsinline></video>
+    <canvas id="canvas"></canvas>
+    <button class="btn" id="flashBtn">💡</button>
+    <div id="status" class="status">Kamera betöltése...</div>
+    
+    <div id="controls">
+        <div id="sliderContainer">
+            <span style="color: #fff; font-size: 14px;">1×</span>
+            <input type="range" id="zoomSlider" min="1" max="10" value="1" step="0.1">
+            <span style="color: #fff; font-size: 14px;">10×</span>
+        </div>
+        <button class="btn" id="freezeBtn">⏸</button>
+    </div>
+
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const controls = document.getElementById('controls');
+        const flashBtn = document.getElementById('flashBtn');
+        const freezeBtn = document.getElementById('freezeBtn');
+        const status = document.getElementById('status');
+        const zoomSlider = document.getElementById('zoomSlider');
+
+        let stream = null;
+        let zoom = 1;
+        let flashOn = false;
+        let frozen = false;
+        let track = null;
+        let initialDistance = 0;
+        let initialZoom = 1;
+
+        // Service Worker regisztráció
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').catch(err => {
+                console.log('Service Worker regisztráció sikertelen:', err);
+            });
+        }
+
+        function showStatus(msg) {
+            status.textContent = msg;
+            status.style.display = 'block';
+            setTimeout(() => {
+                status.style.display = 'none';
+            }, 2000);
+        }
+
+        async function startCamera() {
+            try {
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    alert('A böngésző nem támogatja a kamera hozzáférést. Használj HTTPS kapcsolatot vagy modern böngészőt!');
+                    return;
+                }
+
+                showStatus('Kamera engedély kérése...');
+                
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: 'environment',
+                        width: { ideal: 1920 },
+                        height: { ideal: 1080 }
+                    }
+                });
+
+                video.srcObject = stream;
+                track = stream.getVideoTracks()[0];
+                
+                video.style.display = 'block';
+                controls.style.display = 'flex';
+                status.style.display = 'none';
+                
+                applyZoom();
+            } catch (err) {
+                console.error('Kamera hiba:', err);
+                if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+                    alert('Kamera hozzáférés megtagadva! Kérlek, engedélyezd a kamerát a böngésző beállításaiban.');
+                } else if (err.name === 'NotFoundError') {
+                    alert('Nem található kamera az eszközön.');
+                } else {
+                    alert('Nem sikerült elérni a kamerát: ' + err.message + '\n\nBizonyosodj meg róla, hogy HTTPS kapcsolatot használsz!');
+                }
+            }
+        }
+
+        function applyZoom() {
+            if (!track) return;
+            
+            const capabilities = track.getCapabilities();
+            const settings = track.getSettings();
+            
+            if (capabilities.zoom) {
+                const maxZoom = capabilities.zoom.max;
+                const minZoom = capabilities.zoom.min;
+                const zoomValue = minZoom + (zoom - 1) * (maxZoom - minZoom) / 9;
+                
+                track.applyConstraints({
+                    advanced: [{ zoom: Math.min(zoomValue, maxZoom) }]
+                });
+            } else {
+                video.style.transform = `scale(${zoom})`;
+            }
+            
+            zoomSlider.value = zoom;
+        }
+
+        function getDistance(touches) {
+            const dx = touches[0].clientX - touches[1].clientX;
+            const dy = touches[0].clientY - touches[1].clientY;
+            return Math.sqrt(dx * dx + dy * dy);
+        }
+
+        video.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 2) {
+                e.preventDefault();
+                initialDistance = getDistance(e.touches);
+                initialZoom = zoom;
+            }
+        });
+
+        video.addEventListener('touchmove', (e) => {
+            if (e.touches.length === 2) {
+                e.preventDefault();
+                const currentDistance = getDistance(e.touches);
+                const scale = currentDistance / initialDistance;
+                zoom = Math.max(1, Math.min(10, initialZoom * scale));
+                applyZoom();
+            }
+        });
+
+        canvas.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 2) {
+                e.preventDefault();
+                initialDistance = getDistance(e.touches);
+                initialZoom = zoom;
+            }
+        });
+
+        canvas.addEventListener('touchmove', (e) => {
+            if (e.touches.length === 2) {
+                e.preventDefault();
+                const currentDistance = getDistance(e.touches);
+                const scale = currentDistance / initialDistance;
+                zoom = Math.max(1, Math.min(10, initialZoom * scale));
+                applyZoom();
+            }
+        });
+
+        zoomSlider.addEventListener('input', (e) => {
+            zoom = parseFloat(e.target.value);
+            applyZoom();
+        });
+
+        flashBtn.addEventListener('click', async () => {
+            if (!track) return;
+            
+            try {
+                const capabilities = track.getCapabilities();
+                if (capabilities.torch) {
+                    flashOn = !flashOn;
+                    await track.applyConstraints({
+                        advanced: [{ torch: flashOn }]
+                    });
+                    flashBtn.style.background = flashOn ? '#ff6b6b' : '#ffd700';
+                } else {
+                    showStatus('A vaku nem támogatott');
+                }
+            } catch (err) {
+                showStatus('Vaku hiba');
+            }
+        });
+
+        freezeBtn.addEventListener('click', () => {
+            frozen = !frozen;
+            
+            if (frozen) {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                ctx.drawImage(video, 0, 0);
+                
+                video.style.display = 'none';
+                canvas.style.display = 'block';
+                freezeBtn.textContent = '▶';
+                freezeBtn.style.background = '#ff6b6b';
+            } else {
+                video.style.display = 'block';
+                canvas.style.display = 'none';
+                freezeBtn.textContent = '⏸';
+                freezeBtn.style.background = '#4CAF50';
+            }
+        });
+
+        // Automatikus indítás
+        window.addEventListener('load', () => {
+            startCamera();
+        });
+
+        startBtn.addEventListener('click', startCamera);
+    </script>
+</body>
+</html>
